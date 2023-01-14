@@ -1,7 +1,7 @@
 import requests
 import random
 
-# list of proxies
+# list of proxies, u could also use file
 proxies = [
     "http://proxy1:port",
     "http://proxy2:port",
